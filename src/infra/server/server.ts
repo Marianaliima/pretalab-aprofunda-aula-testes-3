@@ -11,7 +11,7 @@ app.use('/users', userRoutes);
 app.use('/posts', postRoutes);
 
 
-const URI = process.env.MONGO_URI;
+const URI = process.env.MONGO_URL;
 
 if(!URI){
     throw new Error(' a variavel não está definida')
