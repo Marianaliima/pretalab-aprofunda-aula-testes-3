@@ -13,7 +13,7 @@ export class CreateUserController {
 
       const { password: _, ...userWithoutPassword } = user;
 
-      return res.status(201).json(userWithoutPassword);
+      return res.status(201).json({message: 'usuário criado com sucesso', user: userWithoutPassword});
     } catch (error: any) {
       return res.status(400).json({ error: error.message });
     }
