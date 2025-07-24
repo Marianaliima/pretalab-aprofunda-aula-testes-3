@@ -11,41 +11,47 @@ env:
 
 jobs:
   test:
-    name: Run tests
-    run-on: ubuntu-latest
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      mongodb:
+        image: mongo:5.0
+        ports:
+          - 27017:27017
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build project
+      run: npm run build
+    
+    - name: Run tests
+      run: npm test
+      env:
+        MONGO_URL: mongodb://localhost:27017/blog_test
+        JWT_SECRET: test-secret
+        NODE_ENV: test
 
-  services:
-    mongodb:
-      image: mongo:5.0
-
-      ports:
-      - 27017:27017
-  steps:
-  - name: Checkout code
-    uses: actions/checkout@v4
-  - name: Setup Node.js
-    uses: actions/setup-node@v4
-    with:
-      node-version: ${{env.NODE_VERSION}}
-      cache: 'npm'
-  - name: install dependencies
-    run: npm ci
-
-  - name: Build project
-    run: npm run build
-
-  - name: Run tests
-    run: npm test
-    env:
-      MONGO_URI: mongodb://localhost:27017/blog_test
-      JWT_SECRET: test-secret
-      NODE_ENV: test
   deploy:
     name: Deploy to Render
     needs: test
-    run-on: ubuntu-latest
-
+    runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-    with:
-      service-id: ${{secrets.RENDER_SERVICE_ID}}
-      api-key: ${{secrets.RENDER_API_KEY}}
+    
+    steps:
+    - name: Deploy to Render
+      uses: johnbeynon/render-deploy-action@v0.0.8
+      with:
+        service-id: ${{ secrets.RENDER_SERVICE_ID }}
+        api-key: ${{ secrets.RENDER_API_KEY }}
