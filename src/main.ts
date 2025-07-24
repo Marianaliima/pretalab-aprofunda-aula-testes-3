@@ -1,6 +1,7 @@
-// src/main.ts
 import app from './infra/server/server';
+import { config } from './config/environment';
 
-app.listen(3000, () => {
-  console.log('Servidor rodando em http://localhost:3000');
+const PORT = config.port
+app.listen(PORT, () => {
+  console.log(`Servidor rodando ${PORT}`);
 });

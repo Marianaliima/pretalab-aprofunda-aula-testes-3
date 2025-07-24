@@ -5,6 +5,14 @@
     "rootDir": "./src", // Indica onde está o código-fonte (normalmente sua pasta `src`).
     "outDir": "./dist", // Define onde os arquivos compilados em JavaScript vão parar (a pasta `dist`).
     "strict": true, // Ativa todas as verificações de tipo mais rigorosas (boa prática para evitar bugs).
-    "esModuleInterop": true // Permite importar pacotes CommonJS (como o Express) usando `import` em vez de `require`.
-  }
+    "esModuleInterop": true, // Permite importar pacotes CommonJS (como o Express) usando `import` em vez de `require`.
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration":  true,
+    "sourceMap": true
+
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "src/tests/**/*"]
 }
