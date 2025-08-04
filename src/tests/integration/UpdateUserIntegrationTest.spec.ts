@@ -6,39 +6,36 @@ import { userModel } from "../../infra/database/mongooseUserModel";
 describe("PATCH /users:id", () => {
   let userId: string;
 
-  beforeAll(async () => {
-    const testDbUri = process.env.MONGO_TEST_URI || "default";
-    if (mongoose.connection.readyState === 0) {
-      await mongoose.connect(testDbUri);
-    }
-  });
-
   beforeEach(async () => {
-
     await userModel.deleteMany({});
-    
+
+    const uniqueEmail = `dandara-${Date.now()}-${Math.random()
+      .toString(36)
+      .substr(2, 9)}@example.com`;
+    const uniqueLogin = `dandara-${Date.now()}`;
+
     const response = await request(app).post("/users").send({
       name: "Dandara da Silva",
-      login: "dandara1995",
-      email: "dandara@example.com",
+      login: uniqueLogin,
+      email: uniqueEmail,
       password: "123456",
     });
-    
 
-    console.log("Response status:", response.status);
-    console.log("Response body:", response.body);
-    
-
-    if (response.status === 201 && response.body.user && response.body.user.id) {
+    if (
+      response.status === 201 &&
+      response.body.user &&
+      response.body.user.id
+    ) {
       userId = response.body.user.id;
     } else {
-      throw new Error(`Falha ao criar usuário para teste: ${JSON.stringify(response.body)}`);
+      throw new Error(
+        `Falha ao criar usuário para teste: ${JSON.stringify(response.body)}`
+      );
     }
   });
 
-  afterAll(async () => {
+  afterEach(async () => {
     await userModel.deleteMany({});
-    await mongoose.connection.close();
   });
 
   it("deve alterar o nome com sucesso", async () => {

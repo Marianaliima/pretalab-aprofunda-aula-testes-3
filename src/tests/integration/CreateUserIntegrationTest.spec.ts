@@ -4,29 +4,25 @@ import app from "../../infra/server/server";
 import { userModel } from "../../infra/database/mongooseUserModel";
 
 describe("User Integration Tests", () => {
-  beforeAll(async () => {
-    const testDbUri = process.env.MONGO_TEST_URI || "default";
-
-    if (mongoose.connection.readyState === 0) {
-      await mongoose.connect(testDbUri);
-    }
-  });
-
   beforeEach(async () => {
     await userModel.deleteMany({});
   });
 
-  afterAll(async () => {
+  afterEach(async () => {
     await userModel.deleteMany({});
-    await mongoose.connection.close();
   });
 
   describe("POST /users", () => {
     it("deve criar um novo usuário com sucesso", async () => {
+      const uniqueEmail = `dandara-${Date.now()}-${Math.random()
+        .toString(36)
+        .substr(2, 9)}@example.com`;
+      const uniqueLogin = `dandara-${Date.now()}`;
+
       const userData = {
         name: "Dandara da Silva",
-        login: "dandara1995",
-        email: "dandara@example.com",
+        login: uniqueLogin,
+        email: uniqueEmail,
         password: "123456",
       };
 
@@ -41,10 +37,15 @@ describe("User Integration Tests", () => {
     });
 
     it("deve retornar erro em caso de email duplicado", async () => {
+      const baseEmail = `dandara-${Date.now()}-${Math.random()
+        .toString(36)
+        .substr(2, 9)}@example.com`;
+      const baseLogin = `dandara-${Date.now()}`;
+
       const userData = {
         name: "Dandara da Silva",
-        login: "dandara1995",
-        email: "dandara@example.com",
+        login: baseLogin,
+        email: baseEmail,
         password: "123456",
       };
 
@@ -52,8 +53,8 @@ describe("User Integration Tests", () => {
 
       const duplicateUserData = {
         name: "Bianca Santana",
-        login: "bianca1995",
-        email: "dandara@example.com",
+        login: `bianca-${Date.now()}`,
+        email: baseEmail,
         password: "outrasenha",
       };
 
@@ -80,18 +81,26 @@ describe("User Integration Tests", () => {
   });
 
   describe("POST /users/login", () => {
+    let testUserEmail: string;
+
     beforeEach(async () => {
-      await request(app).post("/users").send({
-        name: "Test User",
-        login: "testuser",
-        email: "test@example.com",
-        password: "123456",
-      });
+      testUserEmail = `test-${Date.now()}-${Math.random()
+        .toString(36)
+        .substr(2, 9)}@example.com`;
+
+      await request(app)
+        .post("/users")
+        .send({
+          name: "Test User",
+          login: `testuser-${Date.now()}`,
+          email: testUserEmail,
+          password: "123456",
+        });
     });
 
     it("deve fazer login com credenciais válidas", async () => {
       const loginData = {
-        email: "test@example.com",
+        email: testUserEmail,
         password: "123456",
       };
 
@@ -116,7 +125,7 @@ describe("User Integration Tests", () => {
 
     it("deve retornar erro com senha incorreta", async () => {
       const loginData = {
-        email: "test@example.com",
+        email: testUserEmail,
         password: "senhaerrada",
       };
 
@@ -129,17 +138,24 @@ describe("User Integration Tests", () => {
 
   describe("GET /users/me", () => {
     let authToken: string;
+    let userEmail: string;
 
     beforeEach(async () => {
-      await request(app).post("/users").send({
-        name: "Test User",
-        login: "testuser",
-        email: "test@example.com",
-        password: "123456",
-      });
+      userEmail = `test-${Date.now()}-${Math.random()
+        .toString(36)
+        .substr(2, 9)}@example.com`;
+
+      await request(app)
+        .post("/users")
+        .send({
+          name: "Test User",
+          login: `testuser-${Date.now()}`,
+          email: userEmail,
+          password: "123456",
+        });
 
       const loginResponse = await request(app).post("/users/login").send({
-        email: "test@example.com",
+        email: userEmail,
         password: "123456",
       });
 
@@ -155,7 +171,7 @@ describe("User Integration Tests", () => {
       expect(response.body).toHaveProperty("message", "rota protegida");
       expect(response.body).toHaveProperty("user");
       expect(response.body.user).toHaveProperty("userId");
-      expect(response.body.user).toHaveProperty("email", "test@example.com");
+      expect(response.body.user).toHaveProperty("email", userEmail);
     });
 
     it("deve retornar erro sem token de autorização", async () => {

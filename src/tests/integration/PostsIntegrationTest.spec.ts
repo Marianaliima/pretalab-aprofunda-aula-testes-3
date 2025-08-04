@@ -8,38 +8,35 @@ describe("Posts Integration Tests", () => {
   let authToken: string;
   let userId: string;
 
-  beforeAll(async () => {
-    const testDbUri = process.env.MONGO_TEST_URI || "default";
-    if (mongoose.connection.readyState === 0) {
-      await mongoose.connect(testDbUri);
-    }
-  });
-
   beforeEach(async () => {
     await userModel.deleteMany({});
     await PostModel.deleteMany({});
 
+    const uniqueEmail = `test-${Date.now()}-${Math.random()
+      .toString(36)
+      .substr(2, 9)}@example.com`;
+    const uniqueLogin = `testuser-${Date.now()}`;
+
     const userResponse = await request(app).post("/users").send({
       name: "Test User",
-      login: "testuser",
-      email: "test@example.com",
+      login: uniqueLogin,
+      email: uniqueEmail,
       password: "123456",
     });
 
-    userId = userResponse.body.id;
+    userId = userResponse.body.user?.id || userResponse.body.id;
 
     const loginResponse = await request(app).post("/users/login").send({
-      email: "test@example.com",
+      email: uniqueEmail,
       password: "123456",
     });
 
     authToken = loginResponse.body.token;
   });
 
-  afterAll(async () => {
+  afterEach(async () => {
     await userModel.deleteMany({});
     await PostModel.deleteMany({});
-    await mongoose.connection.close();
   });
 
   describe("POST /posts", () => {

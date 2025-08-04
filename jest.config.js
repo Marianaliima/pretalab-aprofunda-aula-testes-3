@@ -10,5 +10,5 @@ module.exports = {
   },
   setupFilesAfterEnv: ["<rootDir>src/tests/setup.ts"],
   collectCoverageFrom: ["src/**/*.ts", "!src/**/*.d.ts", "!src/main.ts"],
-
+  maxWorkers: 1,
 };
