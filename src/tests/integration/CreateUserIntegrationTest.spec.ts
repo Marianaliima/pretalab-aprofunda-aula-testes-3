@@ -4,6 +4,20 @@ import app from "../../infra/server/server";
 import { userModel } from "../../infra/database/mongooseUserModel";
 
 describe("User Integration Tests", () => {
+  beforeAll(async () => {
+    if (mongoose.connection.readyState === 0) {
+      await mongoose.connect(process.env.MONGO_TEST_URL!, {
+        serverSelectionTimeoutMS: 10000,
+        socketTimeoutMS: 45000,
+        maxPoolSize: 5,
+      });
+    }
+  }, 30000);
+
+  afterAll(async () => {
+    await mongoose.connection.close();
+  }, 10000);
+
   beforeEach(async () => {
     await userModel.deleteMany({});
   });
